@@ -19,9 +19,15 @@ pipeline {
             }
         }
         
-        stage('Build project') {
+        stage('Build & Test project') {
             steps {
-                sh 'mvn -f ./spring-boot/pom.xml clean install'
+                sh 'mvn -f ./spring-boot/pom.xml clean package'
+            }
+        }
+        
+        stage('Static Code Analysis: Sonarqube') {
+            steps {
+                sh 'mvn -f ./spring-boot/pom.xml clean package'
             }
         }
         
