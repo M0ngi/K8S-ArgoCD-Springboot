@@ -6,12 +6,15 @@ pipeline {
     
     environment {
         DOCKERHUB = credentials('dockerhub_m0ngi')
+        IMAGE_NAME = 'm0ngi/mini-projet-springboot'
+        MANIFEST_UPDATER_JOB = 'manifest-updater'
+        CODE_REPOSITORY = 'https://github.com/M0ngi/K8S-ArgoCD-Springboot.git'
     }
     
     stages {
         stage('Clone repository') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: "${CODE_REPOSITORY}"]])
 
             }
         }
@@ -24,20 +27,27 @@ pipeline {
         
         stage('Build docker image') {
             steps {
-                sh 'docker build -t m0ngi/mini-projet-springboot ./spring-boot'
+                sh "docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} ./spring-boot"
             }
         }
         
         stage('Push image to Dockerhub') {
             steps {
                 sh 'docker login -u $DOCKERHUB_USR -p $DOCKERHUB_PSW'
-                sh 'docker push m0ngi/mini-projet-springboot'
+                sh "docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}"
+            }
+        }
+        
+        stage('Trigger ManifestUpdate') {
+            steps {
+                echo "triggering manifest updater"
+                build job: "${MANIFEST_UPDATER_JOB}", parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
             }
         }
         
         stage('Clean up') {
             steps {
-                sh 'docker rmi m0ngi/mini-projet-springboot'
+                sh "docker rmi ${IMAGE_NAME}:${env.BUILD_NUMBER}"
                 sh 'docker logout' 
             }
         }
