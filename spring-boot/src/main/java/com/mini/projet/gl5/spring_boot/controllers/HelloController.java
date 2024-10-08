@@ -17,4 +17,12 @@ public class HelloController {
         return new ResponseEntity<Object>(resp, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/hello", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> index2() {
+        String[] resp = new String[2];
+        resp[0] = "Hello";
+        resp[1] = "World";
+        return new ResponseEntity<Object>(resp, HttpStatus.OK);
+    }
+
 }
