@@ -3,16 +3,14 @@ kind: Application
 metadata:
   name: vpro-app
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: myapp=mydockerhubusername/myapp
-    argocd-image-updater.argoproj.io/myapp.update-strategy: latest
+
 spec:
   project: default
 
   source:
-    repoURL: https://github.com/M0ngi/K8S-ArgoCD-Springboot.git
+    repoURL: https://github.com/M0ngi/K8S-ArgoCD-Springboot-Manifest.git
     targetRevision: HEAD
-    path: k8s
+    path: .
 
   destination:
     server: https://kubernetes.default.svc
