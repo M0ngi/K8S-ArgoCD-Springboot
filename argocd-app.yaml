@@ -3,6 +3,9 @@ kind: Application
 metadata:
   name: vpro-app
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: myapp=mydockerhubusername/myapp
+    argocd-image-updater.argoproj.io/myapp.update-strategy: latest
 spec:
   project: default
 

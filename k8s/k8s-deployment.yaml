@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: spring-boot-k8s
-          image: m0ngi/mini-projet-springboot:1.0
+          image: m0ngi/mini-projet-springboot:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
