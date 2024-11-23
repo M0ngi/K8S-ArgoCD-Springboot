@@ -8,7 +8,7 @@ pipeline {
         DOCKERHUB = credentials('dockerhub_m0ngi')
         IMAGE_NAME = 'm0ngi/mini-projet-springboot'
         MANIFEST_UPDATER_JOB = 'manifest-updater'
-        CODE_REPOSITORY = 'https://github.com/M0ngi/K8S-ArgoCD-Springboot.git'
+        CODE_REPOSITORY = 'https://github.com/M0ngi/K8S-ArgoCD-Springboot-Infra.git'
     }
     
     stages {
