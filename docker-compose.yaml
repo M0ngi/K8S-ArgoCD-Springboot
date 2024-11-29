@@ -1,5 +1,17 @@
 version: "3.8"
 services:
+  ansible:
+    build: ./ansible/
+    tty: true
+    image: ansible
+    container_name: ansible
+    hostname: ansible
+    volumes:
+      - ./ansible/playbooks:/playbooks
+      - ./ansible/hosts:/etc/ansible/hosts
+    ports:
+      - 2222:22
+
   jenkins:
     build: ./jenkins/
     privileged: true

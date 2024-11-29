@@ -1,0 +1,116 @@
+- name: Ensure Nginx is installed
+  hosts: webservers
+  user: ansible
+  tasks:
+    - name: add Docker apt-key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker-apt-keyring.asc
+        mode: "0644"
+        force: true
+      become: yes
+
+    - name: add Docker's APT repository
+      apt_repository:
+        repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }} signed-by=/etc/apt/keyrings/docker-apt-keyring.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install docker (rootless) & docker compose
+      apt:
+        name:
+          - docker.io
+          - docker-ce-rootless-extras
+          - uidmap
+          - docker-compose-plugin
+        state: present
+      become: yes
+
+    - name: Install minikube
+      apt:
+        deb: "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
+        state: present
+      become: yes
+
+    - name: Install kubectl
+      get_url:
+        url: "https://dl.k8s.io/release/v1.21.0/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+      become: yes
+
+    - name: Install python3-kubernetes
+      apt:
+        name:
+          - python3-kubernetes
+        state: present
+      become: yes
+
+    - name: Enable user lingering
+      ansible.builtin.command: loginctl enable-linger ansible
+      become: yes
+      args:
+        creates: /var/lib/systemd/linger/ansible
+
+    - name: Setup rootless docker
+      ansible.builtin.command: dockerd-rootless-setuptool.sh install
+
+    - name: Clone repository
+      git:
+        repo: https://github.com/M0ngi/K8S-ArgoCD-Springboot-Manifest.git
+        dest: ~/manifest-config
+        clone: yes
+        accept_hostkey: yes
+        recursive: no
+        force: yes
+        version: main
+
+    - name: Start minikube
+      shell: /usr/bin/minikube start
+
+    # - name: Setup minikube env
+    #   shell: eval $(minikube -p minikube docker-env)
+
+    - name: Setup minikube ingress
+      shell: minikube addons enable ingress
+
+    - name: Apply Deployment
+      kubernetes.core.k8s:
+        state: present
+        src: ~/manifest-config/k8s-deployment.yaml
+
+    - name: Apply service
+      kubernetes.core.k8s:
+        state: present
+        src: ~/manifest-config/k8s-service.yaml
+
+    - name: Create ArgoCD namespace
+      kubernetes.core.k8s:
+        name: argocd
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Apply ArgoCD manifest
+      kubernetes.core.k8s:
+        namespace: argocd
+        state: present
+        src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+    - name: Install ArgoCD cli
+      ansible.builtin.get_url:
+        url: https://github.com/argoproj/argo-cd/releases/download/v2.13.1/argocd-linux-amd64
+        dest: /usr/local/bin/argocd
+        mode: "0755"
+      become: yes
+
+    - name: Apply argocd service
+      kubernetes.core.k8s:
+        state: present
+        src: ~/manifest-config/argocd-app.yaml
+
+    - name: Setup ingress app
+      kubernetes.core.k8s:
+        state: present
+        src: ~/manifest-config/k8s-ingress.yaml
