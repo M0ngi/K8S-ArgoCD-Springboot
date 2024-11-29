@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 public class HelloController {
 
@@ -14,6 +17,12 @@ public class HelloController {
         String[] resp = new String[2];
         resp[0] = "Hello";
         resp[1] = "World";
+
+        Logger logger = LoggerFactory.getLogger(HelloController.class);
+        logger.error("Something bad happened.");
+        String json = "{ \"item\": \"Orange soda\", \"price\": 100.00 }";
+        logger.info("Log message with structured logging " + json);
+
         return new ResponseEntity<Object>(resp, HttpStatus.OK);
     }
 

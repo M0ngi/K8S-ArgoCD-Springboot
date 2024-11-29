@@ -53,3 +53,8 @@ argocd-pass:
 	just kube
 	kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
+build:
+	docker build -t m0ngi/mini-projet-springboot:latest ./spring-boot
+
+run:
+	docker run -p 8080:8080 -it m0ngi/mini-projet-springboot:latest
