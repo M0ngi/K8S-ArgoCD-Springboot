@@ -11,6 +11,8 @@ services:
       - ./ansible/hosts:/etc/ansible/hosts
     ports:
       - 2222:22
+    environment:
+      - DO_API_TOKEN=${DO_API_TOKEN}
 
   jenkins:
     build: ./jenkins/

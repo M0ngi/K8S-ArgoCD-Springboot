@@ -78,11 +78,15 @@
     - name: Apply Deployment
       kubernetes.core.k8s:
         state: present
+        wait: yes
+        wait_timeout: 1000
         src: ~/manifest-config/k8s-deployment.yaml
 
     - name: Apply service
       kubernetes.core.k8s:
         state: present
+        wait: yes
+        wait_timeout: 1000
         src: ~/manifest-config/k8s-service.yaml
 
     - name: Create ArgoCD namespace
@@ -96,6 +100,8 @@
       kubernetes.core.k8s:
         namespace: argocd
         state: present
+        wait: yes
+        wait_timeout: 1000
         src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
     - name: Install ArgoCD cli
@@ -108,9 +114,13 @@
     - name: Apply argocd service
       kubernetes.core.k8s:
         state: present
+        wait: yes
+        wait_timeout: 1000
         src: ~/manifest-config/argocd-app.yaml
 
     - name: Setup ingress app
       kubernetes.core.k8s:
         state: present
+        wait: yes
+        wait_timeout: 1000
         src: ~/manifest-config/k8s-ingress.yaml
