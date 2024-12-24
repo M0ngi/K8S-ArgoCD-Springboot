@@ -35,7 +35,7 @@ kube:
 	export KUBECONFIG={{KUBE_CONFIG_PATH}}
 
 all-up:
-	docker compose up --build
+	docker compose --env-file ./.env up --build
 
 ansible:
 	docker compose --env-file ./.env up ansible --build
@@ -52,6 +52,7 @@ k8s-destroy:
 argocd-pass:
 	just kube
 	kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+	echo ""
 
 build:
 	docker build -t m0ngi/mini-projet-springboot:latest ./spring-boot

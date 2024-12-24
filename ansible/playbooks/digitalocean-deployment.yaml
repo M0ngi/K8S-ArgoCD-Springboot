@@ -1,4 +1,4 @@
-- name: Ensure Nginx is installed
+- name: Digital Ocean Deployment
   hosts: localhost
   connection: local
   tasks:
@@ -38,6 +38,19 @@
             count: 1
         return_kubeconfig: true
         wait_timeout: 1000
+
+    - name: Retreiving cluster config
+      community.digitalocean.digital_ocean_kubernetes:
+        state: present
+        oauth_token: "{{ lookup('env', 'DO_API_TOKEN') }}"
+        name: miniprojet-k8s
+        region: nyc1
+        node_pools:
+          - name: miniprojet-k8s
+            size: s-1vcpu-2gb
+            count: 1
+        return_kubeconfig: true
+        wait_timeout: 1000
       register: my_cluster
 
     - name: Show the kubeconfig for the cluster we just created
@@ -54,33 +67,34 @@
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
         state: present
-        wait: yes
-        wait_timeout: 300
-        src: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0-beta.0/deploy/static/provider/do/deploy.yaml
+        # wait: yes
+        # wait_timeout: 1000
+        src: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 
     - name: Apply Deployment
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
         state: present
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         src: ~/manifest-config/k8s-deployment.yaml
 
     - name: Apply service
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
         state: present
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         src: ~/manifest-config/k8s-service.yaml
 
     - name: Setup ingress app
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
         state: present
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         src: ~/manifest-config/k8s-spring-ingress.yaml
+        continue_on_error: yes
 
     - name: Create ArgoCD namespace
       kubernetes.core.k8s:
@@ -93,8 +107,8 @@
     - name: Apply ArgoCD manifest
       kubernetes.core.k8s:
         namespace: argocd
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         kubeconfig: ~/kube-config.yaml
         state: present
         src: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -102,15 +116,15 @@
     - name: Apply argocd app
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         state: present
         src: ~/manifest-config/argocd-app.yaml
 
     - name: Apply argocd ingress
       kubernetes.core.k8s:
         kubeconfig: ~/kube-config.yaml
-        wait: yes
-        wait_timeout: 300
+        # wait: yes
+        # wait_timeout: 1000
         state: present
         src: ~/manifest-config/k8s-argo-ingress.yaml

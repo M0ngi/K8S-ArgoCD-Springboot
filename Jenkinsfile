@@ -6,8 +6,10 @@ pipeline {
     
     environment {
         DOCKERHUB = credentials('dockerhub_m0ngi')
+        SONAR = credentials('sonar')
         IMAGE_NAME = 'm0ngi/mini-projet-springboot'
         MANIFEST_UPDATER_JOB = 'manifest-updater'
+        SNYK_SCAN_JOB = 'Snyk CI'
         CODE_REPOSITORY = 'https://github.com/M0ngi/K8S-ArgoCD-Springboot-Infra.git'
     }
     
@@ -27,7 +29,9 @@ pipeline {
         
         stage('Static Code Analysis: Sonarqube') {
             steps {
-                sh 'mvn -f ./spring-boot/pom.xml clean package'
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn -f ./spring-boot/pom.xml sonar:sonar'
+                }
             }
         }
         
@@ -41,6 +45,16 @@ pipeline {
             steps {
                 sh 'docker login -u $DOCKERHUB_USR -p $DOCKERHUB_PSW'
                 sh "docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}"
+            }
+        }
+
+        stage('Trigger Snyk Scan') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        build job: "${SNYK_SCAN_JOB}", parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)], wait: false
+                    }
+                }
             }
         }
         

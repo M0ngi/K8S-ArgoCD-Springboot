@@ -1,4 +1,4 @@
-- name: Ensure Nginx is installed
+- name: Minikube Deployment
   hosts: webservers
   user: ansible
   tasks:
